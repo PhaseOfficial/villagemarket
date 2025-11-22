@@ -1,39 +1,63 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Services from "./pages/Services";
-import ComingSoon from "./pages/comingsoon";
-import './App.css';
-import ContactUs from "./pages/Contact";
-import Games from "./pages/Games";
-import TagManager from 'react-gtm-module';
-import StorePage from "./pages/StorePage";
-import AIChatWidget from "./components/AIChatWidget";
-
-const tagManagerArgs = {
-  gtmId: 'GTM-PKXK7LPV', // Replace with your GTM ID
-};
-
-TagManager.initialize(tagManagerArgs);
+import React from 'react'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import { useVisitTracker } from './hooks/useVisitTracker'
+import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import ClientProducts from './pages/ClientProducts'
+import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import ProtectedRoute from './components/ProtectedRoute'
+import AnalyticsDashboard from './components/AnalyticsDashboard'
 
 
-const App = () => {
+
+// Component to initialize visit tracking
+const VisitTracker = () => {
+  useVisitTracker() // This hook handles all visit tracking
+  return null
+}
+
+function App() {
   return (
-    <div className="p-4">
+    <AuthProvider>
+        <VisitTracker />
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/business/:businessId" element={<ClientProducts />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute>
+                  <div className="container mx-auto px-4 py-8">
+                    <AnalyticsDashboard />
+                  </div>
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+          <footer className="bg-green-600 text-gray-100 py-8 mt-12">
+            <div className="container mx-auto px-4 text-center">
+              &copy; {new Date().getFullYear()} Village Business Platform. All rights reserved.
+            </div>
+          </footer>
+          
+        </div>
+    </AuthProvider>
+  )
+}
 
-      <Routes >
-        <Route path="/" element={<Home />} />
-        <Route path="/About" element={<About />} />
-        <Route path="/Services" element={<Services />} />
-        <Route path="/Comingsoon" element={<ComingSoon />} />
-        <Route path="/Contact" element={<ContactUs />} />
-        <Route path="/Games" element={<Games />} />
-        <Route path="/Store" element={<StorePage />} />
-      </Routes>
-        <AIChatWidget />
-    </div>
-  );
-};
-
-export default App;
+export default App
