@@ -1,201 +1,144 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { FaBars, FaTimes, FaHome, FaTachometerAlt, FaSignInAlt, FaUserPlus } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 import logo from '../assets/logo.png'
 
-
 const Navbar = () => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleSignOut = async () => {
     await signOut()
-    navigate('/#/')
+    navigate('/')
     setIsMenuOpen(false)
   }
 
-  const closeMenu = () => {
-    setIsMenuOpen(false)
-  }
+  const closeMenu = () => setIsMenuOpen(false)
 
   const menuVariants = {
-    closed: {
-      opacity: 0,
-      y: -20,
-      transition: {
-        duration: 0.2
-      }
-    },
-    open: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.3
-      }
-    }
+    closed: { opacity: 0, scale: 0.95, y: -20, transition: { duration: 0.2 } },
+    open: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 30 } }
   }
 
-  const overlayVariants = {
-    closed: {
-      opacity: 0,
-      transition: {
-        duration: 0.2
-      }
-    },
-    open: {
-      opacity: 1,
-      transition: {
-        duration: 0.3
-      }
-    }
-  }
-
-  const NavLink = ({ to, children, icon: Icon, onClick }) => (
+  // Desktop Link Component
+  const NavLink = ({ to, children }) => (
     <Link
       to={to}
-      onClick={onClick || closeMenu}
-      className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-green-700 transition-colors rounded-lg"
+      className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white/50 rounded-full transition-all duration-200"
     >
-      {Icon && <Icon className="w-5 h-5" />}
-      <span>{children}</span>
+      {children}
     </Link>
   )
 
-  const NavButton = ({ onClick, children, icon: Icon }) => (
-    <button
-      onClick={onClick}
-      className="flex items-center space-x-3 px-4 py-3 text-white hover:bg-green-700 transition-colors rounded-lg w-full text-left"
+  // Mobile Link Component
+  const MobileNavLink = ({ to, children, icon: Icon, onClick }) => (
+    <Link
+      to={to}
+      onClick={onClick || closeMenu}
+      className="flex items-center space-x-3 px-4 py-3 text-slate-700 hover:bg-white/60 hover:text-green-700 transition-all rounded-xl"
     >
-      {Icon && <Icon className="w-5 h-5" />}
-      <span>{children}</span>
-    </button>
+      {Icon && <Icon className="w-5 h-5 opacity-70" />}
+      <span className="font-medium">{children}</span>
+    </Link>
   )
 
   return (
-    <nav className="bg-green-600 text-white shadow-lg relative z-50">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          {/* Logo and Brand */}
-          <Link to="/" className="flex items-center gap-3 text-xl font-bold">
-            <img
-              src={logo}
-              alt="Company Logo"
-              className="h-12 w-auto md:h-16"
-            />
-            <span className="hidden sm:inline">Village Business Platform</span>
-            <span className="sm:hidden">VBP</span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link to="/" className="hover:text-green-200 transition-colors px-3 py-2 rounded">Home</Link>
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'pt-2 px-2' : 'pt-4 px-4'}`}>
+      <nav className={`mx-auto max-w-7xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg shadow-black/5 transition-all duration-300 ${scrolled ? 'rounded-xl py-2' : 'rounded-2xl py-3'}`}>
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center">
             
-            {user ? (
-              <>
-                <Link to="/dashboard" className="hover:text-green-200 transition-colors px-3 py-2 rounded">Dashboard</Link>
-                <button 
-                  onClick={handleSignOut}
-                  className="bg-green-700 px-4 py-2 rounded hover:bg-green-800 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="hover:text-green-200 transition-colors px-3 py-2 rounded">Login</Link>
-                <Link 
-                  to="/register" 
-                  className="bg-green-700 px-4 py-2 rounded hover:bg-green-800 transition-colors"
-                >
-                  Register Business
-                </Link>
-              </>
-            )}
-          </div>
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <img src={logo} alt="Logo" className="h-10 w-auto transition-transform duration-300 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-green-500 blur-xl opacity-20 rounded-full group-hover:opacity-30 transition-opacity"></div>
+              </div>
+              <span className="font-bold text-lg text-slate-800 hidden sm:inline">Village Business</span>
+            </Link>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-green-700 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? (
-              <FaTimes className="w-6 h-6" />
-            ) : (
-              <FaBars className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Menu with Animation */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <>
-              {/* Overlay */}
-              <motion.div
-                key="overlay"
-                variants={overlayVariants}
-                initial="closed"
-                animate="open"
-                exit="closed"
-                className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-                onClick={closeMenu}
-              />
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-1">
+              <NavLink to="/">Home</NavLink>
               
-              {/* Menu */}
-              <motion.div
-                key="menu"
-                variants={menuVariants}
-                initial="closed"
-                animate="open"
-                exit="closed"
-                className="md:hidden absolute top-full left-0 right-0 bg-green-600 shadow-lg border-t border-green-500 z-50"
-              >
-                <div className="container mx-auto px-4 py-4">
-                  <div className="flex flex-col space-y-2">
-                    <NavLink to="/" icon={FaHome}>
-                      Home
-                    </NavLink>
+              {user ? (
+                <>
+                  <NavLink to="/dashboard">Dashboard</NavLink>
+                  
+                  <div className="w-px h-6 bg-slate-200 mx-2"></div>
+                  <button 
+                    onClick={handleSignOut}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2 rounded-full text-sm font-medium transition-colors border border-slate-200"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/login">Login</NavLink>
+                  {/* Standard Register Link (Visible when logged out) */}
+                  <Link 
+                    to="/register" 
+                    className="ml-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full text-sm font-medium shadow-md shadow-green-600/20 hover:shadow-green-600/40 transition-all transform hover:-translate-y-0.5"
+                  >
+                    Register Business
+                  </Link>
+                </>
+              )}
+            </div>
 
-                    {user ? (
-                      <>
-                        <NavLink to="/dashboard" icon={FaTachometerAlt}>
-                          Dashboard
-                        </NavLink>
-                        <NavButton onClick={handleSignOut}>
-                          Sign Out
-                        </NavButton>
-                      </>
-                    ) : (
-                      <>
-                        <NavLink to="/login" icon={FaSignInAlt}>
-                          Login
-                        </NavLink>
-                        <NavLink to="/register" icon={FaUserPlus}>
-                          Register Business
-                        </NavLink>
-                      </>
-                    )}
-                  </div>
+            {/* Mobile Menu Toggle */}
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 rounded-full bg-slate-100 text-slate-600">
+              {isMenuOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
+        </div>
+      </nav>
 
-                  {user && (
-                    <div className="mt-4 pt-4 border-t border-green-500">
-                      <div className="px-4 py-2 text-sm text-green-200">
-                        <p className="font-medium">Welcome back!</p>
-                        <p className="truncate">{user.email}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </div>
-    </nav>
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            key="mobile-menu"
+            variants={menuVariants}
+            initial="closed" animate="open" exit="closed"
+            className="absolute top-full left-0 right-0 px-4 mt-2 md:hidden"
+          >
+            <div className="bg-white/80 backdrop-blur-xl border border-white/40 rounded-2xl shadow-xl overflow-hidden mx-auto max-w-7xl">
+              <div className="p-4 space-y-2">
+                <MobileNavLink to="/" icon={FaHome}>Home</MobileNavLink>
+
+                {user ? (
+                  <>
+                    <MobileNavLink to="/dashboard" icon={FaTachometerAlt}>Dashboard</MobileNavLink>
+                    <div className="h-px bg-slate-200 my-2"></div>
+                    <button onClick={handleSignOut} className="flex items-center space-x-3 px-4 py-3 text-slate-700 w-full text-left hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors">
+                      <FaSignInAlt className="opacity-70" /> <span>Sign Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <MobileNavLink to="/login" icon={FaSignInAlt}>Login</MobileNavLink>
+                    <MobileNavLink to="/register" icon={FaUserPlus}>Register Business</MobileNavLink>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="fixed inset-0 -z-10 h-screen" onClick={closeMenu}></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
